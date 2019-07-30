@@ -4,6 +4,7 @@ import os
 import sys
 
 import boto3
+from botocore.exceptions import NoRegionError
 import requests
 import yaml
 
@@ -94,7 +95,7 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
         pass
 
 
-def _load_params_from_ssm(config, path_prefix, region_name):
+def _load_params_from_ssm(config, path_prefix, region_name=None):
     # Load parameters from SSM Parameter Store starting with path.
     # Populate the config dict using keys from the path after the path_prefix
     if region_name:
