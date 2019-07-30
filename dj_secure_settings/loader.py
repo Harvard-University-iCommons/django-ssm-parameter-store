@@ -93,10 +93,19 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
         pass
 
 
-def _load_params_from_ssm(config, path_prefix):
+def _load_params_from_ssm(config, path_prefix, region_name):
     # Load parameters from SSM Parameter Store starting with path.
     # Populate the config dict using keys from the path after the path_prefix
-    ssm = boto3.client("ssm")
+    if region_name:
+        ssm = boto3.client("ssm", region_name=region_name)
+    else:
+        try:
+            # try to use an externally-configured region
+            ssm = boto3.client("ssm")
+        except NoRegionError:
+            # fall back to getting the region from instance metadata
+            region_name = _get_region_from_metadata()
+            ssm = boto3.client("ssm", region_name=region_name)
     args = {"Path": path_prefix, "Recursive": True, "WithDecryption": True}
     more = None
     while more is not False:
@@ -114,6 +123,7 @@ def _set_nested(dic, keys, value):
     for key in keys[:-1]:
         dic = dic.setdefault(key, {})
     dic[keys[-1]] = value
+
 
 def _get_env_from_ec2_tag():
     # first get the instance ID
@@ -138,3 +148,8 @@ def _get_env_from_ec2_tag():
     )
     env = result['Tags'][0]['Value']
     return env
+
+
+def _get_region_from_metadata():
+    instance_details = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=1).json()
+    return instance_details['region']
