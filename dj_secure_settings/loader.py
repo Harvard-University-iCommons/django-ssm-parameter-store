@@ -4,6 +4,7 @@ import os
 import sys
 
 import boto3
+import requests
 import yaml
 
 logger = logging.getLogger(__name__)
@@ -27,8 +28,12 @@ def load_secure_settings(project_name=None, environment=None):
             env = os.environ['ENV']
             logger.info('Using environment {} from the ENV environment variable'.format(env))
         except KeyError:
-            # raise an exception
-            raise EnvironmentError('The ENV environment variable must be set.')
+            try:
+                # get the environment from an ec2 instance tag
+                env = _get_env_from_ec2_tag()
+            except:
+                # raise an exception
+                raise EnvironmentError('The ENV environment variable must be set or an ec2 tag "env" must be set.')
     else:
         logger.info('Using environment {} explicitly passed to the load_secure_settings method'.format(environment))
 
@@ -109,3 +114,27 @@ def _set_nested(dic, keys, value):
     for key in keys[:-1]:
         dic = dic.setdefault(key, {})
     dic[keys[-1]] = value
+
+def _get_env_from_ec2_tag():
+    # first get the instance ID
+    instance_details = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=1).json()
+
+    ec2 = boto3.client('ec2', region_name=instance_details['region'])
+    result = ec2.describe_tags(
+        Filters=[
+            {
+                'Name': 'resource-id',
+                'Values': [
+                    instance_details['instanceId'],
+                ],
+            },
+            {
+                'Name': 'key',
+                'Values': [
+                    'environment',
+                ],
+            },
+        ]
+    )
+    env = result['Tags'][0]['Value']
+    return env

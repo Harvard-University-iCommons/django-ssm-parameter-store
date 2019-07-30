@@ -34,5 +34,6 @@ setup(
     install_requires=[
         "boto3>=1.9.91",
         "PyYAML>=3.13",
+        "requests>=2",
     ],
 )
