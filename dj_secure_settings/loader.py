@@ -31,6 +31,7 @@ def load_secure_settings(project_name=None, environment=None):
             try:
                 # get the environment from an ec2 instance tag
                 env = _get_env_from_ec2_tag()
+                logger.info('Using environment {} from ec2 metadata tags'.format(env))
             except:
                 # raise an exception
                 raise EnvironmentError('The ENV environment variable must be set or an ec2 tag "env" must be set.')
