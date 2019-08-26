@@ -58,7 +58,7 @@ def load_secure_settings(project_name=None, environment=None):
     # next try to overlay those parameters with values from a local file
     caller = inspect.stack()[1]
     try:
-        yaml_params = yaml.load(open(yaml_file))
+        yaml_params = yaml.load(open(yaml_file), Loader=yaml.Loader)
         _load_params_from_yaml(config, yaml_params, env, 'defaults')
         _load_params_from_yaml(config, yaml_params, env, project_name)
     except:
