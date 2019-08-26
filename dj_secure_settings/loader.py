@@ -8,8 +8,6 @@ from botocore.exceptions import NoRegionError
 import requests
 import yaml
 
-logger = logging.getLogger(__name__)
-
 
 # for compatibility with YAML produced by ssm-diff:
 class SecureYamlTag(yaml.YAMLObject, str):
@@ -27,17 +25,14 @@ def load_secure_settings(project_name=None, environment=None):
     if not environment:
         try:
             env = os.environ['ENV']
-            logger.info('Using environment {} from the ENV environment variable'.format(env))
         except KeyError:
             try:
                 # get the environment from an ec2 instance tag
                 env = _get_env_from_ec2_tag()
-                logger.info('Using environment {} from ec2 metadata tags'.format(env))
             except:
                 # raise an exception
                 raise EnvironmentError('The ENV environment variable must be set or an ec2 tag "env" must be set.')
     else:
-        logger.info('Using environment {} explicitly passed to the load_secure_settings method'.format(environment))
 
     caller_filename = inspect.stack()[1][1]
     # this is the path which contains the caller's module:
@@ -49,11 +44,8 @@ def load_secure_settings(project_name=None, environment=None):
     if not project_name:
         if caller_project_name:
             project_name = caller_project_name
-            logger.info('Using project name {} from the caller path'.format(caller_project_name))
         else:
             raise EnvironmentError('Must provide a project_name.')
-    else:
-        logger.info('Using project name {} explicitly passed to the load_secure_settings method'.format(project_name))
 
     config = {}
 
@@ -62,7 +54,6 @@ def load_secure_settings(project_name=None, environment=None):
         _load_params_from_ssm(config, '/{}/{}/'.format(env, project_name))
     except:
         # could not load params from Parameter Store, but that may be ok
-        logger.warn('Could not load parameters for {} from the AWS SSM Parameter Store'.format(project_name))
         pass
 
     # next try to overlay those parameters with values from a local file
@@ -72,7 +63,7 @@ def load_secure_settings(project_name=None, environment=None):
         _load_params_from_yaml(config, yaml_params, env, 'defaults')
         _load_params_from_yaml(config, yaml_params, env, project_name)
     except:
-        logger.warn('Could not load parameters for {} from a local file...'.format(project_name))
+        # couldn't load params from a local file
         pass
     finally:
         del caller
@@ -80,8 +71,6 @@ def load_secure_settings(project_name=None, environment=None):
     # sanity check:
     if len(config) == 0:
         raise Exception('No configuration values could be loaded from AWS SSM Parameter Store or a local file!')
-
-    logger.debug('loaded these secure settings: {}'.format(config.keys()))
 
     return config
 
