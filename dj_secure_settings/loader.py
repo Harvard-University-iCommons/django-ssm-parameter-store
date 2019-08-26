@@ -32,7 +32,6 @@ def load_secure_settings(project_name=None, environment=None):
             except:
                 # raise an exception
                 raise EnvironmentError('The ENV environment variable must be set or an ec2 tag "env" must be set.')
-    else:
 
     caller_filename = inspect.stack()[1][1]
     # this is the path which contains the caller's module:
