@@ -21,8 +21,9 @@ class SecureYamlTag(yaml.YAMLObject, str):
 def load_secure_settings(project_name=None, environment=None):
     # returns a dict containing defaults overlaid with project-specific parameters
 
-    # The ENV var must be set; fail otherwise
-    if not environment:
+    env = environment
+    # We must have an environment; fail otherwise
+    if not env:
         try:
             env = os.environ['ENV']
         except KeyError:
