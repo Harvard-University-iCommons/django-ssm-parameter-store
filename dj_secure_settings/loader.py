@@ -51,8 +51,9 @@ def load_secure_settings(project_name=None, environment=None):
     try:
         _load_params_from_ssm(config, '/{}/defaults/'.format(env))
         _load_params_from_ssm(config, '/{}/{}/'.format(env, project_name))
-    except:
+    except Exception as e:
         # could not load params from Parameter Store, but that may be ok
+        logging.warning("Couldn't load params from SSM: {}".format(str(e)))
         pass
 
     # next try to overlay those parameters with values from a local file
@@ -61,8 +62,9 @@ def load_secure_settings(project_name=None, environment=None):
         yaml_params = yaml.load(open(yaml_file), Loader=yaml.Loader)
         _load_params_from_yaml(config, yaml_params, env, 'defaults')
         _load_params_from_yaml(config, yaml_params, env, project_name)
-    except:
+    except Exception as e:
         # couldn't load params from a local file
+        logging.warning("Couldn't load params from local file: {}".format(str(e)))
         pass
     finally:
         del caller
@@ -80,6 +82,7 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
             config[k] = yaml_params[env][namespace][k]
     except KeyError:
         # couldn't load the parameters
+        logging.warning("Was not able to load params from a local YAML file.")
         pass
 
 
@@ -94,6 +97,7 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
             ssm = boto3.client("ssm")
         except NoRegionError:
             # fall back to getting the region from instance metadata
+            logging.warning("Don't know what the region is; will try to get it from instance metadata.")
             region_name = _get_region_from_metadata()
             ssm = boto3.client("ssm", region_name=region_name)
     args = {"Path": path_prefix, "Recursive": True, "WithDecryption": True}
