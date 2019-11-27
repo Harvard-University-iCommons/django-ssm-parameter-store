@@ -73,7 +73,7 @@ def load_secure_settings(project_name=None, environment=None):
     # sanity check:
     if len(config) == 0:
         raise Exception('No configuration values could be loaded from AWS SSM Parameter Store or a local file!')
-
+    import pudb; pudb.set_trace()
     return config
 
 
@@ -124,9 +124,9 @@ def _set_nested(dic, keys, value):
         dic = dic.setdefault(key, {})
 
     # if the value is 'True' or 'False', set a boolean True or False instead
-    if value is 'True':
+    if value == 'True':
         value = True
-    elif value is 'False':
+    elif value == 'False':
         value = False
 
     dic[keys[-1]] = value
