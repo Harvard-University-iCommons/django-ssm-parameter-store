@@ -73,7 +73,6 @@ def load_secure_settings(project_name=None, environment=None):
     # sanity check:
     if len(config) == 0:
         raise Exception('No configuration values could be loaded from AWS SSM Parameter Store or a local file!')
-    import pudb; pudb.set_trace()
     return config
 
 
