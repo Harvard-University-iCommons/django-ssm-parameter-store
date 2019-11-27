@@ -117,6 +117,13 @@ def _set_nested(dic, keys, value):
     # this sets a value in an arbitrarily-deeply nested dict
     for key in keys[:-1]:
         dic = dic.setdefault(key, {})
+
+    # if the value is 'True' or 'False', set a boolean True or False instead
+    if value is 'True':
+        value = True
+    elif value is 'False':
+        value = False
+
     dic[keys[-1]] = value
 
 
