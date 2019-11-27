@@ -103,6 +103,7 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
             ssm = boto3.client("ssm", region_name=region_name)
     args = {"Path": path_prefix, "Recursive": True, "WithDecryption": True}
     more = None
+    params_found = 0
     while more is not False:
         if more:
             args["NextToken"] = more
@@ -110,7 +111,11 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
         for param in params["Parameters"]:
             keys = param['Name'][len(path_prefix):].split('/')
             _set_nested(config, keys, param['Value'])
+            params_found += 1
         more = params.get("NextToken", False)
+
+    if params_found == 0:
+        logging.warning('Found no SSM parameters for prefix {}'.format(path_prefix))
 
 
 def _set_nested(dic, keys, value):
