@@ -65,7 +65,7 @@ def load_secure_settings(project_name=None, environment=None):
         _load_params_from_yaml(config, yaml_params, env, project_name)
     except FileNotFoundError as e:
         # couldn't load params from a local file
-        logging.debug("Couldn't load params from local file: no local file exists")
+        logging.debug(f"Couldn't load params from local file: '{yaml_file}' not found.")
         pass
     finally:
         del caller
@@ -82,7 +82,7 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
             config[k] = yaml_params[env][namespace][k]
     except KeyError:
         # couldn't load the parameters
-        logging.debug("Was not able to load params from a local YAML file.")
+        logging.debug(f"Unable to load keys from YAML file for env {env} in namespace {namespace}.")
         pass
 
 
