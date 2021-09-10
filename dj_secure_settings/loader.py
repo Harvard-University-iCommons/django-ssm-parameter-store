@@ -50,8 +50,8 @@ def load_secure_settings(project_name=None, environment=None):
     config = {}
 
     try:
-        _load_params_from_ssm(config, '/{}/defaults/'.format(env))
-        _load_params_from_ssm(config, '/{}/{}/'.format(env, project_name))
+        _load_params_from_ssm(config, f'/{env}/defaults/')
+        _load_params_from_ssm(config, f'/{env}/{project_name}/')
     except ExpiredTokenException as e:
         # could not load params from Parameter Store, but that may be ok
         logging.debug("Couldn't load params from SSM: missing or expired token")
@@ -114,7 +114,7 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
         more = params.get("NextToken", False)
 
     if params_found == 0:
-        logging.warning('Found no SSM parameters for prefix {}'.format(path_prefix))
+        logging.warning(f'Found no SSM parameters for prefix {path_prefix}')
 
 
 def _set_nested(dic, keys, value):
