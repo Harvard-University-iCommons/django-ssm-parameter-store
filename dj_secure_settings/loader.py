@@ -1,10 +1,9 @@
 import inspect
 import logging
 import os
-import sys
 
 import boto3
-from botocore.exceptions import NoRegionError
+from botocore.exceptions import ClientError, NoRegionError
 import requests
 import yaml
 
@@ -52,10 +51,13 @@ def load_secure_settings(project_name=None, environment=None):
     try:
         _load_params_from_ssm(config, f'/{env}/defaults/')
         _load_params_from_ssm(config, f'/{env}/{project_name}/')
-    except ExpiredTokenException as e:
-        # could not load params from Parameter Store, but that may be ok
-        logging.debug("Couldn't load params from SSM: missing or expired token")
-        pass
+    except ClientError as e:
+        if "ExpiredTokenException" in str(e):
+             # could not load params from Parameter Store, but that may be ok
+            logging.debug("Couldn't load params from SSM: missing or expired token")
+            pass
+        else:
+            raise e
 
     # next try to overlay those parameters with values from a local file
     caller = inspect.stack()[1]
@@ -80,7 +82,7 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
     try:
         for k in yaml_params[env][namespace]:
             config[k] = yaml_params[env][namespace][k]
-    except KeyError:
+    except (KeyError, TypeError):
         # couldn't load the parameters
         logging.debug(f"Unable to load keys from YAML file for env {env} in namespace {namespace}.")
         pass
