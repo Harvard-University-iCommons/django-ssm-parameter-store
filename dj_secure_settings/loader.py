@@ -3,6 +3,7 @@ import logging
 import os
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError, NoRegionError
 import requests
 import yaml
@@ -53,7 +54,7 @@ def load_secure_settings(project_name=None, environment=None):
         _load_params_from_ssm(config, f'/{env}/{project_name}/')
     except ClientError as e:
         if "ExpiredTokenException" in str(e):
-             # could not load params from Parameter Store, but that may be ok
+            # could not load params from Parameter Store, but that may be ok
             logging.debug("Couldn't load params from SSM: missing or expired token")
             pass
         else:
@@ -92,17 +93,37 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
     # Load parameters from SSM Parameter Store starting with path.
     # Populate the config dict using keys from the path after the path_prefix
     if region_name:
-        ssm = boto3.client("ssm", region_name=region_name)
+        client_config = Config(
+            region_name=region_name,
+            retries={
+                'mode': 'standard',
+                'max_attempts': 5,
+            }
+        )
+        ssm = boto3.client("ssm", config=client_config)
     else:
         try:
             # try to use an externally-configured region
-            ssm = boto3.client("ssm")
+            client_config = Config(
+                retries={
+                    'mode': 'standard',
+                    'max_attempts': 5,
+                }
+            )
+            ssm = boto3.client("ssm", config=client_config)
         except NoRegionError:
             # fall back to getting the region from instance metadata
             logging.debug("Don't know what the region is; will try to get it from instance metadata.")
             region_name = _get_region_from_metadata()
             if region_name:
-                ssm = boto3.client("ssm", region_name=region_name)
+                client_config = Config(
+                    region_name=region_name,
+                    retries={
+                        'mode': 'standard',
+                        'max_attempts': 5,
+                    }
+                )
+                ssm = boto3.client("ssm", config=client_config)
             else:
                 logging.debug("Cannot determine AWS region, so cannot load params from SSM Parameter Store.")
                 return
