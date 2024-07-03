@@ -1,40 +1,10 @@
-import os
-from setuptools import find_packages, setup
+"""
+This simple `setup.py` tells `setuptools` to look at pyproject.toml` for configuration.
+This is done because AWS SAM CLI (SAM CLI, version 1.120.0) does not seem to fully support 
+configurations specified only in `pyproject.toml`. 
+"""
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
-    README = readme.read()
+from setuptools import setup
 
-# allow setup.py to be run from any path
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
-
-setup(
-    name='django-ssm-parameter-store',
-    version='0.6',
-    packages=find_packages(),
-    include_package_data=True,
-    license='BSD License',  # example license
-    description='A simple python module to load secure settings from AWS SSM Parameter Store.',
-    long_description=README,
-    url='https://huit.harvard.edu/',
-    author='HUIT Academic Technology',
-    author_email='academictechnology@harvard.edu',
-    classifiers=[
-        'Environment :: Web Environment',
-        'Framework :: Django',
-        'Framework :: Django :: X.Y',  # replace "X.Y" as appropriate
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',  # example license
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Topic :: Internet :: WWW/HTTP',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-    ],
-    install_requires=[
-        "boto3>=1.9.91",
-        "PyYAML>=3.13",
-        "requests>=2",
-    ],
-)
+if __name__ == "__main__":
+    setup()
