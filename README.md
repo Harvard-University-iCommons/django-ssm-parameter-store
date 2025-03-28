@@ -15,3 +15,21 @@ You can explicitly pass values for either of these parameters to override the de
 ```
 SECURE_SETTINGS = load_secure_settings(environment='dev', project_name='myproject')
 ```
+
+## Setting up parameters in AWS SSM Parameter Store
+
+This module expects that you have set up your parameters in the AWS SSM Parameter Store with a specific naming convention. The parameters should be named in the following format:
+
+```
+/{environment}/{project_name}/{parameter_name}
+```
+or, for parameters that will apply to all projects in an environment:
+```
+/{environment}/default/{parameter_name}
+```
+
+Default parameters will be loaded first, and merged with project-specific parameters. If a parameter exists in both locations, the project-specific parameter will take precedence.
+
+## Loading parameters from a `yaml` file (for local development)
+
+The `load_secure_settings()` function will also look for a `yaml` file in the same directory as the calling module named `secure.yaml`. If this file exists, it will be loaded and merged with the parameters from AWS SSM Parameter Store.
