@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-ssm-parameter-store"
-version = "0.7"
+version = "0.8.0"
 description = "A simple python module to load secure settings from AWS SSM Parameter Store."
 readme = "README.md"
 license = { file = "LICENSE" }
