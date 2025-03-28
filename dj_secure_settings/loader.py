@@ -150,7 +150,7 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
             args["NextToken"] = more
         params = ssm.get_parameters_by_path(**args)
         for param in params["Parameters"]:
-            keys = param["Name"][len(path_prefix):].split("/")
+            keys = param["Name"][len(path_prefix) :].split("/")
             _set_nested(config, keys, param["Value"])
             params_found += 1
         more = params.get("NextToken", False)
