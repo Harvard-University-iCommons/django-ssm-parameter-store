@@ -9,12 +9,13 @@ description = "A simple python module to load secure settings from AWS SSM Param
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
-    {name = "HUIT Academic Technology", email = "academictechnology@harvard.edu"}
+    { name = "HUIT Academic Technology", email = "academictechnology@harvard.edu" },
 ]
 
 requires-python = ">=3.10"
 
 dependencies = [
+    "django>=3.2,<5.0",
     "boto3>=1.9.91",
     "PyYAML>=3.13",
     "requests>=2",
@@ -23,9 +24,10 @@ dependencies = [
 classifiers = [
     "Environment :: Web Environment",
     "Framework :: Django",
-    "Framework :: Django :: X.Y",  # Replace "X.Y" as appropriate.
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.2",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: BSD License",  # Example license.
+    "License :: OSI Approved :: BSD License",           # Example license.
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.10",
@@ -37,3 +39,16 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/Harvard-University-iCommons/django-ssm-parameter-store"
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "pytest-django==4.10.0",
+    "pytest-cov==6.0.0",
+    "mock==5.2.0",
+    "isort==6.0.1",
+    "black==25.1.0",
+    "coverage==7.7.1",
+    "flake8==7.1.2",
+    "flake8-pyproject==1.2.3",
+]
