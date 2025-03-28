@@ -30,10 +30,11 @@ def load_secure_settings(project_name=None, environment=None):
             try:
                 # get the environment from an ec2 instance tag
                 env = _get_env_from_ec2_tag()
-            except:
+            except Exception:
                 # raise an exception
                 raise EnvironmentError(
-                    'The ENV environment variable must be set or an ec2 tag "env" must be set.'
+                    "The ENV environment variable must be set "
+                    "or an ec2 tag 'env' must be set."
                 )
 
     caller_filename = inspect.stack()[1][1]
@@ -68,7 +69,7 @@ def load_secure_settings(project_name=None, environment=None):
         yaml_params = yaml.load(open(yaml_file), Loader=yaml.Loader)
         _load_params_from_yaml(config, yaml_params, env, "defaults")
         _load_params_from_yaml(config, yaml_params, env, project_name)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         # couldn't load params from a local file
         logging.debug(f"Couldn't load params from local file: '{yaml_file}' not found.")
         pass
@@ -78,7 +79,8 @@ def load_secure_settings(project_name=None, environment=None):
     # sanity check:
     if len(config) == 0:
         raise Exception(
-            "No configuration values could be loaded from AWS SSM Parameter Store or a local file!"
+            "No configuration values could be loaded from "
+            "AWS SSM Parameter Store or a local file!"
         )
     return config
 
@@ -90,7 +92,8 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
     except (KeyError, TypeError):
         # couldn't load the parameters
         logging.debug(
-            f"Unable to load keys from YAML file for env {env} in namespace {namespace}."
+            "Unable to load keys from YAML file "
+            f"for env {env} in namespace {namespace}."
         )
         pass
 
@@ -120,7 +123,8 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
         except NoRegionError:
             # fall back to getting the region from instance metadata
             logging.debug(
-                "Don't know what the region is; will try to get it from instance metadata."
+                "Don't know what the region is; will "
+                "try to get it from instance metadata."
             )
             region_name = _get_region_from_metadata()
             if region_name:
@@ -134,7 +138,8 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
                 ssm = boto3.client("ssm", config=client_config)
             else:
                 logging.debug(
-                    "Cannot determine AWS region, so cannot load params from SSM Parameter Store."
+                    "Cannot determine AWS region, so cannot "
+                    "load params from SSM Parameter Store."
                 )
                 return
     args = {"Path": path_prefix, "Recursive": True, "WithDecryption": True}
@@ -145,7 +150,7 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
             args["NextToken"] = more
         params = ssm.get_parameters_by_path(**args)
         for param in params["Parameters"]:
-            keys = param["Name"][len(path_prefix) :].split("/")
+            keys = param["Name"][len(path_prefix):].split("/")
             _set_nested(config, keys, param["Value"])
             params_found += 1
         more = params.get("NextToken", False)
@@ -202,6 +207,6 @@ def _get_region_from_metadata():
             timeout=1,
         ).json()
         return instance_details["region"]
-    except:
+    except Exception:
         logging.exception("Couldn't get region from instance metadata.")
         return None
