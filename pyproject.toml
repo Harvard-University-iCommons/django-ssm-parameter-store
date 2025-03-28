@@ -52,3 +52,15 @@ dev = [
     "flake8==7.1.2",
     "flake8-pyproject==1.2.3",
 ]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 88
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "dj_secure_settings.tests.settings"

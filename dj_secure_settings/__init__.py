@@ -1,1 +1,1 @@
-name = 'dj_secure_settings'
+name = "dj_secure_settings"
