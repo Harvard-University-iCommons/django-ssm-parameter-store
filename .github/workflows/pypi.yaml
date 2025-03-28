@@ -39,31 +39,31 @@ jobs:
       #   run: |
       #     pytest
 
-  # build:
-  #   name: Build distribution 📦
-  #   runs-on: ubuntu-latest
-  #   needs:
-  #     - test
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.x"
+  build:
+    name: Build distribution 📦
+    runs-on: ubuntu-latest
+    needs:
+      - test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
 
-  #     - name: Install pypa/build
-  #       run: >-
-  #         python3 -m
-  #         pip install
-  #         build
-  #         --user
-  #     - name: Build a binary wheel and a source tarball
-  #       run: python3 -m build
-  #     - name: Store the distribution packages
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: python-package-distributions
-  #         path: dist/
+      - name: Install pypa/build
+        run: >-
+          python3 -m
+          pip install
+          build
+          --user
+      - name: Build a binary wheel and a source tarball
+        run: python3 -m build
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
 
   # publish-to-pypi:
   #   name: >-
@@ -93,31 +93,31 @@ jobs:
   #         password: ${{ secrets.PYPI_TOKEN }}
   #         attestations: false
 
-  # publish-to-testpypi:
-  #   name: Publish Python 🐍 distribution 📦 to TestPyPI
-  #   needs:
-  #     - build
-  #   runs-on: ubuntu-latest
+  publish-to-testpypi:
+    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    needs:
+      - build
+    runs-on: ubuntu-latest
 
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/django-ssm-parameter-store
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/django-ssm-parameter-store
 
-  #   permissions:
-  #     id-token: write # IMPORTANT: mandatory for trusted publishing
+    permissions:
+      id-token: write # IMPORTANT: mandatory for trusted publishing
 
-  #   steps:
-  #     - name: Download all the dists
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: python-package-distributions
-  #         path: dist/
-  #     - name: Publish distribution 📦 to TestPyPI
-  #       uses: pypa/gh-action-pypi-publish@release/v1
-  #       with:
-  #         repository-url: https://test.pypi.org/legacy/
-  #         verbose: true
-  #         skip-existing: true
-  #         user: __token__
-  #         password: ${{ secrets.TEST_PYPI_TOKEN }}
-  #         attestations: false
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distribution 📦 to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verbose: true
+          skip-existing: true
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_TOKEN }}
+          attestations: false
