@@ -11,7 +11,7 @@ import yaml
 
 # for compatibility with YAML produced by ssm-diff:
 class SecureYamlTag(yaml.YAMLObject, str):
-    yaml_tag = u'!secure'
+    yaml_tag = "!secure"
 
     @classmethod
     def from_yaml(cls, loader, node):
@@ -25,33 +25,35 @@ def load_secure_settings(project_name=None, environment=None):
     # We must have an environment; fail otherwise
     if not env:
         try:
-            env = os.environ['ENV']
+            env = os.environ["ENV"]
         except KeyError:
             try:
                 # get the environment from an ec2 instance tag
                 env = _get_env_from_ec2_tag()
-            except:
+            except Exception:
                 # raise an exception
-                raise EnvironmentError('The ENV environment variable must be set or an ec2 tag "env" must be set.')
+                raise EnvironmentError(
+                    'The ENV environment variable must be set or an ec2 tag "env" must be set.'
+                )
 
     caller_filename = inspect.stack()[1][1]
     # this is the path which contains the caller's module:
     caller_path = os.path.dirname(caller_filename)
     # this is the parent folder name of the caller's path
     caller_project_name = os.path.basename(os.path.dirname(caller_path))
-    yaml_file = os.path.join(caller_path, 'secure.yml')
+    yaml_file = os.path.join(caller_path, "secure.yml")
 
     if not project_name:
         if caller_project_name:
             project_name = caller_project_name
         else:
-            raise EnvironmentError('Must provide a project_name.')
+            raise EnvironmentError("Must provide a project_name.")
 
     config = {}
 
     try:
-        _load_params_from_ssm(config, f'/{env}/defaults/')
-        _load_params_from_ssm(config, f'/{env}/{project_name}/')
+        _load_params_from_ssm(config, f"/{env}/defaults/")
+        _load_params_from_ssm(config, f"/{env}/{project_name}/")
     except ClientError as e:
         if "ExpiredTokenException" in str(e):
             # could not load params from Parameter Store, but that may be ok
@@ -64,9 +66,9 @@ def load_secure_settings(project_name=None, environment=None):
     caller = inspect.stack()[1]
     try:
         yaml_params = yaml.load(open(yaml_file), Loader=yaml.Loader)
-        _load_params_from_yaml(config, yaml_params, env, 'defaults')
+        _load_params_from_yaml(config, yaml_params, env, "defaults")
         _load_params_from_yaml(config, yaml_params, env, project_name)
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         # couldn't load params from a local file
         logging.debug(f"Couldn't load params from local file: '{yaml_file}' not found.")
         pass
@@ -75,7 +77,9 @@ def load_secure_settings(project_name=None, environment=None):
 
     # sanity check:
     if len(config) == 0:
-        raise Exception('No configuration values could be loaded from AWS SSM Parameter Store or a local file!')
+        raise Exception(
+            "No configuration values could be loaded from AWS SSM Parameter Store or a local file!"
+        )
     return config
 
 
@@ -85,7 +89,9 @@ def _load_params_from_yaml(config, yaml_params, env, namespace):
             config[k] = yaml_params[env][namespace][k]
     except (KeyError, TypeError):
         # couldn't load the parameters
-        logging.debug(f"Unable to load keys from YAML file for env {env} in namespace {namespace}.")
+        logging.debug(
+            f"Unable to load keys from YAML file for env {env} in namespace {namespace}."
+        )
         pass
 
 
@@ -96,9 +102,9 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
         client_config = Config(
             region_name=region_name,
             retries={
-                'mode': 'standard',
-                'max_attempts': 5,
-            }
+                "mode": "standard",
+                "max_attempts": 5,
+            },
         )
         ssm = boto3.client("ssm", config=client_config)
     else:
@@ -106,26 +112,30 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
             # try to use an externally-configured region
             client_config = Config(
                 retries={
-                    'mode': 'standard',
-                    'max_attempts': 5,
+                    "mode": "standard",
+                    "max_attempts": 5,
                 }
             )
             ssm = boto3.client("ssm", config=client_config)
         except NoRegionError:
             # fall back to getting the region from instance metadata
-            logging.debug("Don't know what the region is; will try to get it from instance metadata.")
+            logging.debug(
+                "Don't know what the region is; will try to get it from instance metadata."
+            )
             region_name = _get_region_from_metadata()
             if region_name:
                 client_config = Config(
                     region_name=region_name,
                     retries={
-                        'mode': 'standard',
-                        'max_attempts': 5,
-                    }
+                        "mode": "standard",
+                        "max_attempts": 5,
+                    },
                 )
                 ssm = boto3.client("ssm", config=client_config)
             else:
-                logging.debug("Cannot determine AWS region, so cannot load params from SSM Parameter Store.")
+                logging.debug(
+                    "Cannot determine AWS region, so cannot load params from SSM Parameter Store."
+                )
                 return
     args = {"Path": path_prefix, "Recursive": True, "WithDecryption": True}
     more = None
@@ -135,13 +145,13 @@ def _load_params_from_ssm(config, path_prefix, region_name=None):
             args["NextToken"] = more
         params = ssm.get_parameters_by_path(**args)
         for param in params["Parameters"]:
-            keys = param['Name'][len(path_prefix):].split('/')
-            _set_nested(config, keys, param['Value'])
+            keys = param["Name"][len(path_prefix) :].split("/")
+            _set_nested(config, keys, param["Value"])
             params_found += 1
         more = params.get("NextToken", False)
 
     if params_found == 0:
-        logging.warning(f'Found no SSM parameters for prefix {path_prefix}')
+        logging.warning(f"Found no SSM parameters for prefix {path_prefix}")
 
 
 def _set_nested(dic, keys, value):
@@ -150,9 +160,9 @@ def _set_nested(dic, keys, value):
         dic = dic.setdefault(key, {})
 
     # if the value is 'True' or 'False', set a boolean True or False instead
-    if value == 'True':
+    if value == "True":
         value = True
-    elif value == 'False':
+    elif value == "False":
         value = False
 
     dic[keys[-1]] = value
@@ -160,33 +170,38 @@ def _set_nested(dic, keys, value):
 
 def _get_env_from_ec2_tag():
     # first get the instance ID
-    instance_details = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=1).json()
+    instance_details = requests.get(
+        "http://169.254.169.254/latest/dynamic/instance-identity/document", timeout=1
+    ).json()
 
-    ec2 = boto3.client('ec2', region_name=instance_details['region'])
+    ec2 = boto3.client("ec2", region_name=instance_details["region"])
     result = ec2.describe_tags(
         Filters=[
             {
-                'Name': 'resource-id',
-                'Values': [
-                    instance_details['instanceId'],
+                "Name": "resource-id",
+                "Values": [
+                    instance_details["instanceId"],
                 ],
             },
             {
-                'Name': 'key',
-                'Values': [
-                    'environment',
+                "Name": "key",
+                "Values": [
+                    "environment",
                 ],
             },
         ]
     )
-    env = result['Tags'][0]['Value']
+    env = result["Tags"][0]["Value"]
     return env
 
 
 def _get_region_from_metadata():
     try:
-        instance_details = requests.get('http://169.254.169.254/latest/dynamic/instance-identity/document', timeout=1).json()
-        return instance_details['region']
-    except:
+        instance_details = requests.get(
+            "http://169.254.169.254/latest/dynamic/instance-identity/document",
+            timeout=1,
+        ).json()
+        return instance_details["region"]
+    except Exception:
         logging.exception("Couldn't get region from instance metadata.")
         return None

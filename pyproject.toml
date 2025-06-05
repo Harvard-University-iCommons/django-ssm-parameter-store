@@ -37,3 +37,26 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/Harvard-University-iCommons/django-ssm-parameter-store"
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "pytest-django==4.10.0",
+    "pytest-cov==6.0.0",
+    "mock==5.2.0",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "dj_secure_settings.tests.settings"
+
+[tool.uv]
+keyring-provider = "subprocess"
+
+[[tool.uv.index]]
+name = "private-registry"
+url = "https://aws@huit-academic-technology-482956169056.d.codeartifact.us-east-1.amazonaws.com/pypi/uw/simple/"
+publish-url = "https://aws@huit-academic-technology-482956169056.d.codeartifact.us-east-1.amazonaws.com/pypi/uw/"
+check-url = "https://aws@huit-academic-technology-482956169056.d.codeartifact.us-east-1.amazonaws.com/pypi/uw/simple/"
+
+[tool.setuptools]
+packages = ["dj_secure_settings",]
